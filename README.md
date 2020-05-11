@@ -17,6 +17,8 @@ Clonez le repo sur votre machine. Vous pouvez répondre aux questions en modifia
 
 Ce travail devra être rendu le dimanche après la fin de la 2ème séance de laboratoire, soit au plus tard, **le 11 mai 2020, à 23h59.**
 
+## Auteurs
+Arthur Bécaud et Bruno Egremy
 
 ## Introduction
 
@@ -145,7 +147,7 @@ Pour votre topologie il est utile de contrôler la connectivité entre :
 
 ---
 
-**Réponse :** Oui tous nos pings sont passés.
+**Réponse :** Oui tous nos pings sont passés après avoir définit une ip avec dhcp sur le client VPC.
 
 ---
 
@@ -245,6 +247,37 @@ Vous pouvez consulter l’état de votre configuration IKE avec les commandes su
 
 **Réponse :** Cette commande affiche la configuration du protocole IKE et nous confirme ainsi que notre configuration a bien été appliquée.
 
+```
+RX1#show crypto isakmp policy
+
+Global IKE policy
+Protection suite of priority 20
+		encryption algorithm:AES - Advanced Encryption Standard (256 bit keys).
+		hash algorithm:Secure Hash Standard
+		authentication method:Pre-Shared Key
+		Diffie-Hellman group:#5 (1536 bit)
+		lifetime:1800 seconds, no volume limit
+RX1#
+```
+```
+RX2#show crypto isakmp policy
+
+Global IKE policy
+Protection suite of priority 10
+		encryption algorithm:Three key triple DES
+		hash algorithm:Message Digest 5
+		authentication method:Pre-Shared Key
+		Diffie-Hellman group:#2 (1024 bit)
+		lifetime:1800 seconds, no volume limit
+Protection suite of priority 20
+		encryption algorithm:AES - Advanced Encryption Standard (256 bit keys).
+		hash algorithm:Secure Hash Standard
+		authentication method:Pre-Shared Key
+		Diffie-Hellman group:#5 (1536 bit)
+		lifetime:1800 seconds, no volume limit
+RX2#
+```
+
 ---
 
 
@@ -254,6 +287,20 @@ Vous pouvez consulter l’état de votre configuration IKE avec les commandes su
 
 **Réponse :** Cette commande affiche les clefs pré-partagées pour le VPN. La clef `cisco-1` est visible depuis les deux routeurs `R1` et `R2`.
 
+```
+RX1#show crypto isakmp key
+Keyring      Hostname/Address                            Preshared Key
+
+default      193.200.200.1                               cisco-1
+RX1#
+```
+```
+RX2#show crypto isakmp key
+Keyring      Hostname/Address                            Preshared Key
+
+default      193.100.100.1                               cisco-1
+RX2#
+```
 ---
 
 ## Configuration IPsec
@@ -345,7 +392,33 @@ Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avan
 
 ---
 
-**Réponse :**  
+**Réponse :**  Le ping fonctionne malgré les warnings obtenus lors de la configuration de IPSEC pour les valeurs données au paramètre `lifetime`:
+```
+Warning! Lifetime value of 2560 KB is lower than the recommended optimum value of 102400 KB
+Warning! Lifetime value of 300 sec is lower than the recommended optimum value of 900 sec
+```
+
+```
+VPCS> ping  172.16.1.1
+84 bytes from 172.16.1.1 icmp_seq=1 ttl=254 time=1.348 ms
+84 bytes from 172.16.1.1 icmp_seq=2 ttl=254 time=1.152 ms
+84 bytes from 172.16.1.1 icmp_seq=3 ttl=254 time=1.067 ms
+84 bytes from 172.16.1.1 icmp_seq=4 ttl=254 time=1.244 ms
+84 bytes from 172.16.1.1 icmp_seq=5 ttl=254 time=1.134 ms
+
+VPCS>
+```
+
+```
+RX1#
+*may  11 13:47:02.440: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+*may  11 13:47:04.530: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+RX1#
+*may  11 13:47:05.403: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+*may  11 13:47:06.478: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+RX1#
+*may  11 13:47:07.513: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+```
 
 ---
 
@@ -354,6 +427,14 @@ Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avan
 ---
 
 **Réponse :**  
+
+IKE - lifetime : temps de vie d'une SA en phase 1 du protocole.
+
+IKE - keepalive : intervalle de temps dans laquelle une SA peut vivre s'il n'y a aucun paquet transmis. Cette SA est ensuite supprimé après cette intervalle.
+
+IPsec - lifetime : similaire au `lifetime` de `IKE`. Définit le temps d'utilisation d'une SA avant de changer.
+
+IPsec - idle-time : temps de vie d'une en cas d'inactivité.   
 
 ---
 
@@ -367,7 +448,9 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :** Selon la configuration vue dans la section `Configuration IPsec`.
+- IKE est utilisé pour  la génération des SAs : `'Psec utilisera IKE pour générer ses SA'`
+- ESP est utilisé pour le chiffrement et l'encapsulation des paquets : `crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac`
 
 ---
 
@@ -376,7 +459,12 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :** Selon la configuration vue dans la section `Configuration IPsec`. Nous avons appliqué un mode tunnel.
+
+```
+crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac
+  mode tunnel
+```
 
 ---
 
@@ -385,7 +473,9 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :**  Comme vue dans la théorie du cours, le paquet original est complètement chiffré lors de l'utilisation d'un mode tunnel. L'algorithme cryptographique utilisé est `AES` avec une `clef de 192 bits` selon la ligne suivant exécuté lors de la configuration de IPsec :
+
+`crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac`
 
 ---
 
@@ -394,7 +484,7 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :**  Comme vue dans la théorie du cours, le paquet original et sa nouvelle en-tête ESP sont authentifiés. L’algorithme cryptographique utilisé est `HMAC` avec `SHA-1`.
 
 ---
 
@@ -403,6 +493,6 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :**  Les parties authentifiés (citées dans la question 11) du paquet sont protégées en intégritées. L’algorithme cryptographique utilisé est `HMAC` avec `SHA-1`.
 
 ---
