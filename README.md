@@ -13,10 +13,12 @@ Clonez le repo sur votre machine. Vous pouvez répondre aux questions en modifia
 **N'oubliez pas de spécifier les noms des membres du groupes dans la Pull Request ainsi que dans le mail de rendu !!!**
 
 
-## Echéance 
+## Echéance
 
 Ce travail devra être rendu le dimanche après la fin de la 2ème séance de laboratoire, soit au plus tard, **le 11 mai 2020, à 23h59.**
 
+## Auteurs
+Arthur Bécaud et Bruno Egremy
 
 ## Introduction
 
@@ -30,8 +32,8 @@ Dans ce travail de laboratoire, vous allez configurer des routeurs Cisco émulé
 -	Capture Sniffer avec filtres précis sur la communication à épier
 -	Activation du mode « debug » pour certaines fonctions du routeur
 -	Observation des protocoles IPSec
- 
- 
+
+
 ## Matériel
 
 La manière la plus simple de faire ce laboratoire est dans les machines des salles de labo. Le logiciel d'émulation c'est eve-ng. Vous trouverez un [guide très condensé](files/Fonctionnement_EVE-NG.pdf) pour l'utilisation de eve-ng ici.
@@ -53,7 +55,7 @@ Ensuite, terminez la configuration de la VM, connectez vous et récupérez l'adr
 Utilisez un navigateur internet (hors VM) et tapez l'adresse IP de la VM.
 
 
-## Fichiers nécessaires 
+## Fichiers nécessaires
 
 Tout ce qu'il vous faut c'est un [fichier de projet eve-ng](files/eve-ng_Labo_VPN_SRX.zip), que vous pourrez importer directement dans votre environnement de travail.
 
@@ -66,7 +68,7 @@ Les "machines" du LAN1 (connecté au ISP1) sont simulées avec l'interface loopb
 
 ![Topologie du réseau](images/topologie.png)
 
-Voici le projet eve-ng utilisé pour implémenter la topologie. Le réseau Internet (nuage) est simulé par un routeur. 
+Voici le projet eve-ng utilisé pour implémenter la topologie. Le réseau Internet (nuage) est simulé par un routeur.
 
 ![Topologie eve-ng](images/topologie-eve-ng.png)
 
@@ -77,7 +79,7 @@ Voici le projet eve-ng utilisé pour implémenter la topologie. Le réseau Inter
 - Prenez un peu de temps pour vous familiariser avec la topologie présentée dans ce guide et comparez-la au projet eve-ng. Identifiez les éléments, les interconnexions et les adresses IPs.
 - À tout moment, il vous est possible de sauvegarder la configuration dans la mémoire de vos routeurs :
 	- Au Shell privilégié (symbole #) entrer la commande suivante pour sauvegarder la configuration actuelle dans la mémoire nvram du routeur : ```wr```
-	- Vous **devez** faire des sauvegardes de la configuration (exporter) dans un fichier - c.f. [document guide eve-ng](files/Fonctionnement_EVE-NG.pdf) 
+	- Vous **devez** faire des sauvegardes de la configuration (exporter) dans un fichier - c.f. [document guide eve-ng](files/Fonctionnement_EVE-NG.pdf)
 
 
 ### Vérification de la configuration de base des routeurs
@@ -108,7 +110,7 @@ Un « protocol » différent de `up` indique la plupart du temps que l’interfa
 
 ---
 
-**Réponse :**  
+**Réponse :** Non, aucun problèmes rencontrés.
 
 ---
 
@@ -119,7 +121,7 @@ Un « protocol » différent de `up` indique la plupart du temps que l’interfa
 Les commandes utiles sont les suivantes :
 
 ```
-R2# show ip dhcp pool 
+R2# show ip dhcp pool
 R2# show ip dhcp binding
 ```
 
@@ -145,7 +147,7 @@ Pour votre topologie il est utile de contrôler la connectivité entre :
 
 ---
 
-**Réponse :**  
+**Réponse :** Oui tous nos pings sont passés après avoir définit une ip avec dhcp sur le client VPC.
 
 ---
 
@@ -160,7 +162,7 @@ R2# debug ip icmp
 ```
 Pour déclencher et pratiquer les captures vous allez « pinger » votre routeur R1 avec son IP=193.100.100.1 depuis votre « VPC ». Durant cette opération vous tenterez d’obtenir en simultané les informations suivantes :
 
--	Une trace sniffer (Wireshark) à la sortie du routeur R2 vers Internet. Si vous ne savez pas utiliser Wireshark avec eve-ng, référez-vous au document explicatif eve-ng. Le filtre de **capture** (attention, c'est un filtre de **capture** et pas un filtre d'affichage) suivant peut vous aider avec votre capture : `ip host 193.100.100.1`. 
+-	Une trace sniffer (Wireshark) à la sortie du routeur R2 vers Internet. Si vous ne savez pas utiliser Wireshark avec eve-ng, référez-vous au document explicatif eve-ng. Le filtre de **capture** (attention, c'est un filtre de **capture** et pas un filtre d'affichage) suivant peut vous aider avec votre capture : `ip host 193.100.100.1`.
 -	Les messages de R1 avec `debug ip icmp`.
 
 
@@ -169,6 +171,10 @@ Pour déclencher et pratiquer les captures vous allez « pinger » votre routeur
 ---
 
 **Screenshots :**  
+
+![wireshark](./images/q3_capture_wireshark.jpg)
+
+![debug r1](./images/q3_capture_r1.jpg)
 
 ---
 
@@ -239,7 +245,38 @@ Vous pouvez consulter l’état de votre configuration IKE avec les commandes su
 
 ---
 
-**Réponse :**  
+**Réponse :** Cette commande affiche la configuration du protocole IKE et nous confirme ainsi que notre configuration a bien été appliquée.
+
+```
+RX1#show crypto isakmp policy
+
+Global IKE policy
+Protection suite of priority 20
+		encryption algorithm:AES - Advanced Encryption Standard (256 bit keys).
+		hash algorithm:Secure Hash Standard
+		authentication method:Pre-Shared Key
+		Diffie-Hellman group:#5 (1536 bit)
+		lifetime:1800 seconds, no volume limit
+RX1#
+```
+```
+RX2#show crypto isakmp policy
+
+Global IKE policy
+Protection suite of priority 10
+		encryption algorithm:Three key triple DES
+		hash algorithm:Message Digest 5
+		authentication method:Pre-Shared Key
+		Diffie-Hellman group:#2 (1024 bit)
+		lifetime:1800 seconds, no volume limit
+Protection suite of priority 20
+		encryption algorithm:AES - Advanced Encryption Standard (256 bit keys).
+		hash algorithm:Secure Hash Standard
+		authentication method:Pre-Shared Key
+		Diffie-Hellman group:#5 (1536 bit)
+		lifetime:1800 seconds, no volume limit
+RX2#
+```
 
 ---
 
@@ -248,8 +285,22 @@ Vous pouvez consulter l’état de votre configuration IKE avec les commandes su
 
 ---
 
-**Réponse :**  
+**Réponse :** Cette commande affiche les clefs pré-partagées pour le VPN. La clef `cisco-1` est visible depuis les deux routeurs `R1` et `R2`.
 
+```
+RX1#show crypto isakmp key
+Keyring      Hostname/Address                            Preshared Key
+
+default      193.200.200.1                               cisco-1
+RX1#
+```
+```
+RX2#show crypto isakmp key
+Keyring      Hostname/Address                            Preshared Key
+
+default      193.100.100.1                               cisco-1
+RX2#
+```
 ---
 
 ## Configuration IPsec
@@ -273,13 +324,13 @@ Les commandes de configurations sur R1 ressembleront à ce qui suit :
 ```
 crypto ipsec security-association lifetime kilobytes 2560
 crypto ipsec security-association lifetime seconds 300
-crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac 
+crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac
   ip access-list extended TO-CRYPT
   permit ip 172.16.1.0 0.0.0.255 172.17.1.0 0.0.0.255
-crypto map MY-CRYPTO 10 ipsec-isakmp 
+crypto map MY-CRYPTO 10 ipsec-isakmp
   set peer 193.200.200.1
   set security-association idle-time 900
-  set transform-set STRONG 
+  set transform-set STRONG
   match address TO-CRYPT
 ```
 
@@ -288,14 +339,14 @@ Les commandes de configurations sur R2 ressembleront à ce qui suit :
 ```
 crypto ipsec security-association lifetime kilobytes 2560
 crypto ipsec security-association lifetime seconds 300
-crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac 
+crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac
   mode tunnel
   ip access-list extended TO-CRYPT
   permit ip 172.17.1.0 0.0.0.255 172.16.1.0 0.0.0.255
-crypto map MY-CRYPTO 10 ipsec-isakmp 
+crypto map MY-CRYPTO 10 ipsec-isakmp
   set peer 193.100.100.1
   set security-association idle-time 900
-  set transform-set STRONG 
+  set transform-set STRONG
   match address TO-CRYPT
 ```
 
@@ -310,7 +361,7 @@ show crypto map
 
 ## Activation IPsec & test
 
-Pour activer cette configuration IKE & IPsec il faut appliquer le « crypto map » sur l’interface de sortie du trafic où vous voulez que l’encryption prenne place. 
+Pour activer cette configuration IKE & IPsec il faut appliquer le « crypto map » sur l’interface de sortie du trafic où vous voulez que l’encryption prenne place.
 
 Sur R1 il s’agit, selon le schéma, de l’interface « Ethernet0/0 » et la configuration sera :
 
@@ -335,13 +386,39 @@ Pour tester si votre VPN est correctement configuré vous pouvez maintenant lanc
 debug ip icmp
 ```
 
-Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avant de démarrer votre ping, collectez aussi les éventuels messages à la console des différents routeurs. 
+Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avant de démarrer votre ping, collectez aussi les éventuels messages à la console des différents routeurs.
 
 **Question 6: Ensuite faites part de vos remarques dans votre rapport. :**
 
 ---
 
-**Réponse :**  
+**Réponse :**  Le ping fonctionne malgré les warnings obtenus lors de la configuration de IPSEC pour les valeurs données au paramètre `lifetime`:
+```
+Warning! Lifetime value of 2560 KB is lower than the recommended optimum value of 102400 KB
+Warning! Lifetime value of 300 sec is lower than the recommended optimum value of 900 sec
+```
+
+```
+VPCS> ping  172.16.1.1
+84 bytes from 172.16.1.1 icmp_seq=1 ttl=254 time=1.348 ms
+84 bytes from 172.16.1.1 icmp_seq=2 ttl=254 time=1.152 ms
+84 bytes from 172.16.1.1 icmp_seq=3 ttl=254 time=1.067 ms
+84 bytes from 172.16.1.1 icmp_seq=4 ttl=254 time=1.244 ms
+84 bytes from 172.16.1.1 icmp_seq=5 ttl=254 time=1.134 ms
+
+VPCS>
+```
+
+```
+RX1#
+*may  11 13:47:02.440: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+*may  11 13:47:04.530: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+RX1#
+*may  11 13:47:05.403: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+*may  11 13:47:06.478: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+RX1#
+*may  11 13:47:07.513: ICMP: echo reply sent, src 172.17.1.100, topology BASE, dscp 0 topoid 0
+```
 
 ---
 
@@ -350,6 +427,14 @@ Pensez à démarrer votre sniffer sur la sortie du routeur R2 vers internet avan
 ---
 
 **Réponse :**  
+
+IKE - lifetime : temps de vie d'une SA en phase 1 du protocole.
+
+IKE - keepalive : intervalle de temps dans laquelle une SA peut vivre s'il n'y a aucun paquet transmis. Cette SA est ensuite supprimé après cette intervalle.
+
+IPsec - lifetime : similaire au `lifetime` de `IKE`. Définit le temps d'utilisation d'une SA avant de changer.
+
+IPsec - idle-time : temps de vie d'une en cas d'inactivité.   
 
 ---
 
@@ -363,7 +448,9 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :** Selon la configuration vue dans la section `Configuration IPsec`.
+- IKE est utilisé pour  la génération des SAs : `'Psec utilisera IKE pour générer ses SA'`
+- ESP est utilisé pour le chiffrement et l'encapsulation des paquets : `crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac`
 
 ---
 
@@ -372,7 +459,12 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :** Selon la configuration vue dans la section `Configuration IPsec`. Nous avons appliqué un mode tunnel.
+
+```
+crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac
+  mode tunnel
+```
 
 ---
 
@@ -381,7 +473,9 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :**  Comme vue dans la théorie du cours, le paquet original est complètement chiffré lors de l'utilisation d'un mode tunnel. L'algorithme cryptographique utilisé est `AES` avec une `clef de 192 bits` selon la ligne suivant exécuté lors de la configuration de IPsec :
+
+`crypto ipsec transform-set STRONG esp-aes 192 esp-sha-hmac`
 
 ---
 
@@ -390,7 +484,7 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :**  Comme vue dans la théorie du cours, le paquet original et sa nouvelle en-tête ESP sont authentifiés. L’algorithme cryptographique utilisé est `HMAC` avec `SHA-1`.
 
 ---
 
@@ -399,6 +493,6 @@ En vous appuyant sur les notions vues en cours et vos observations en laboratoir
 
 ---
 
-**Réponse :**  
+**Réponse :**  Les parties authentifiés (citées dans la question 11) du paquet sont protégées en intégritées. L’algorithme cryptographique utilisé est `HMAC` avec `SHA-1`.
 
 ---
